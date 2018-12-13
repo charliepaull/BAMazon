@@ -1,9 +1,8 @@
 // require adds in inquirer & mysql npm packages
 var inquiry = require("inquirer");
 var mysql = require("mysql");
-var divider = "\n------------------------------\n";
 
-// used to connect mysql database to .js file
+// create connection information to sql database
 var connection = mysql.createConnection({
     host: "localhost",
   
@@ -13,50 +12,80 @@ var connection = mysql.createConnection({
     // Your username
     user: "root",
   
-    // Your password & database used
+    // Your password & database name
     password: "password",
     database: "bamazon_db"
   });
 
-// have user choose item from list using inquire
+// Task: show user items in BAMazon
+// query here selects * from product table & displays
+
+// FORMAT PRICES IN TABLE CORRECTLY
 var query = "SELECT * FROM products";
+// connection to mysql server & sql database
     connection.query(query, function(err, response){
     if (err) return err;
+    // response object if no error
     // console.log(response);
-    for (var i in response){
-        // START HERE - help format the object to show user all products
-        var final = `
-        ${response[i].id} | $${response[i].item_id} | Product Name: ${[i].product_name} 
-        | Dept: ${response[i].department_name} | Price: ${response[i].price}
-        Stock: ${response[i].stock_quantity}
-      `}
-      console.log(final);
-    connection.end();
-});
-  
-// /*use connection.query for all function to connect 
-// sql datbase & bamazonCustomer.js file data*/
-// function requestItem(){
-//     inquiry
-//     .prompt({
-//         name: "item",
-//         type: "input",
-//         message: "Which item do you want?"
-//     })
-//     .then(function(answer){
-//         console.log(answer.item);
-//         connection.query("SELECT * FROM products")
-//     })
+    console.log("ID\t product_name\t\t\t\t price($) \t stock_quantity");
+    console.log("----------------------------------------------")
+    for (var i = 0; i < response.length; i++){
+        console.log(response[i].id + "\t" + response[i].product_name + "\t\t\t\t" + response[i].price + "\t" + response[i].stock_quantity);
+    }
+    requestProduct();
+    });
+    
 
-// // 
-// function readProducts() {
-//     console.log("Selecting all products...\n");
-//     connection.query("SELECT * FROM products", function(err, res) {
-//       if (err) throw err;
-//       // Log all results of the SELECT statement
-//       console.log(res);
-//       connection.end();
-//     });
-//   }
+    // Task: Ask the user questions
+      // ask for ID of product they'd like to buy
+      // ask for unit quantity of product
 
-// //   readProducts();
+    // function that prompts user to act and input answers (will call function later)
+
+    // prompt functionality works
+    function requestProduct(){
+      // start inquiry module (required globally)
+      inquiry
+        // structure of inquire: object
+      .prompt([
+        {
+        // asking user to select product by item_id
+          name: "ID",
+          type: "input",
+          message: "Please choose a product using the ID #: "   
+        },
+        {
+        // asking user to select unit quantity of desired product
+          name: "unit quantity",
+          type: "input",
+          message: "Please choose your unit quantity of the desired product: "
+        }
+      ])
+      
+      // this is the response object (using .then(), callback)
+      .then(function(answer){
+        // use & connect to create sql database
+        connection.query(
+          "SELECT ? FROM products",
+          // display user answers from prompt
+          {
+            id: answer.id,
+            stock_quantity: answer.stock_quantity,
+          },
+          function(err){
+            if (err) return err;
+            else {
+              console.log("We've received your order!")
+              console.log(answer);
+            }
+            connection.end()
+          }
+        );
+
+        // check if item is in stock
+        if (answer.stock_quantity < stock_quantity){
+          console.log("Sorry, there are only" + stock_quantity + "items left in at BAMazon.\nPlease choose a different stock quantity.")
+        }
+        
+      })
+    };
