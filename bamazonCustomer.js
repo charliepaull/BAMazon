@@ -1,6 +1,8 @@
 // require adds in inquirer & mysql npm packages
-var inquiry = require("inquirer");
+var inquirer = require("inquirer");
 var mysql = require("mysql");
+// var Table = require("cli-table2");
+require("console.table");
 
 // create connection information to sql database
 var connection = mysql.createConnection({
@@ -20,13 +22,24 @@ var connection = mysql.createConnection({
 // Task: show user items in BAMazon
 // query here selects * from product table & displays
 
+// Creates the connection with the server and loads the product data upon a successful connection
+connection.connect(function(err) {
+  if (err) {
+    console.error("error connecting: " + err.stack);
+  }
+  loadProducts();
+});
+
 // FORMAT PRICES IN TABLE CORRECTLY
+function loadProducts(){
 var query = "SELECT * FROM products";
 // connection to mysql server & sql database
     connection.query(query, function(err, response){
     if (err) return err;
     // response object if no error
     // console.log(response);
+    // var table = new Table({ head: ["ID", "product_name", "Price", "stock_quantity"] });
+    // console.log(table);
     console.log("ID\t product_name\t\t\t\t price($) \t stock_quantity");
     console.log("----------------------------------------------")
     for (var i = 0; i < response.length; i++){
@@ -34,6 +47,7 @@ var query = "SELECT * FROM products";
     }
     requestProduct();
     });
+  };
     
 
     // Task: Ask the user questions
@@ -45,7 +59,7 @@ var query = "SELECT * FROM products";
     // prompt functionality works
     function requestProduct(){
       // start inquiry module (required globally)
-      inquiry
+      inquirer
         // structure of inquire: object
       .prompt([
         {
@@ -60,9 +74,9 @@ var query = "SELECT * FROM products";
           type: "input",
           message: "Please choose your unit quantity of the desired product: "
         }
-      ])
-      
+
       // this is the response object (using .then(), callback)
+      ])
       .then(function(answer){
         // use & connect to create sql database
         connection.query(
@@ -76,16 +90,32 @@ var query = "SELECT * FROM products";
             if (err) return err;
             else {
               console.log("We've received your order!")
-              console.log(answer);
+              console.table(answer);
             }
             connection.end()
           }
         );
-
+        // };
         // check if item is in stock
-        if (answer.stock_quantity < stock_quantity){
-          console.log("Sorry, there are only" + stock_quantity + "items left in at BAMazon.\nPlease choose a different stock quantity.")
-        }
-        
-      })
+        // if there an insufficient amt of stock
+        // if (answer.stock_quantity < stock_quantity){
+        //   console.log("Sorry, there are only" + stock_quantity + "items left at BAMazon.\nPlease choose a different stock quantity.")
+        // }
+        // // sufficient stock = update database to subtract stock
+        // // print out order information to user
+        // else{
+        //   connection.query(
+        //     "UPDATE stock_quantity FROM id",
+            
+        //   )
+        // }
+      
+      });
     };
+
+    function checkIfShouldExit(choice) {
+      if (choice.toLowerCase() === "q"){
+        console.log("Goodbye");
+        process.exit(0);
+      }
+    }
