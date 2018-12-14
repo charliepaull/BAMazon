@@ -1,9 +1,12 @@
 // require adds in inquirer & mysql npm packages
 var inquirer = require("inquirer");
 var mysql = require("mysql");
-// var Table = require("cli-table2");
+var Table = require("cli-table2");
 require("console.table");
 
+
+// BOILER PLATE STRUCTURE - ALWAYS USE 
+// ------------------------------------
 // create connection information to sql database
 var connection = mysql.createConnection({
     host: "localhost",
@@ -19,9 +22,6 @@ var connection = mysql.createConnection({
     database: "bamazon_db"
   });
 
-// Task: show user items in BAMazon
-// query here selects * from product table & displays
-
 // Creates the connection with the server and loads the product data upon a successful connection
 connection.connect(function(err) {
   if (err) {
@@ -29,93 +29,117 @@ connection.connect(function(err) {
   }
   loadProducts();
 });
+// ------------------------------------
+
+// Challenge #1: Customer
+// Task: show user items in BAMazon
+// query here selects * from product table & displays
 
 // FORMAT PRICES IN TABLE CORRECTLY
+// function that loads the full table to show user all BAMazon products
 function loadProducts(){
 var query = "SELECT * FROM products";
-// connection to mysql server & sql database
+// connection to sql database to query
     connection.query(query, function(err, response){
     if (err) return err;
-    // response object if no error
     // console.log(response);
+    
+    // TABLE CLI-2 FORMAT: FIX
+    // ---------------------------
     // var table = new Table({ head: ["ID", "product_name", "Price", "stock_quantity"] });
     // console.log(table);
     console.log("ID\t product_name\t\t\t\t price($) \t stock_quantity");
     console.log("----------------------------------------------")
+    // ---------------------------
+    // logs each item in product table
     for (var i = 0; i < response.length; i++){
         console.log(response[i].id + "\t" + response[i].product_name + "\t\t\t\t" + response[i].price + "\t" + response[i].stock_quantity);
     }
+    // next step: calls function to ask user to request specific product
+    console.log("---------------------------\n")
     requestProduct();
     });
   };
-    
 
-    // Task: Ask the user questions
-      // ask for ID of product they'd like to buy
-      // ask for unit quantity of product
-
-    // function that prompts user to act and input answers (will call function later)
-
-    // prompt functionality works
-    function requestProduct(){
-      // start inquiry module (required globally)
+    // *prompt functionality works*
+    function requestProduct(product){
+      // start inquirer module (required globally)
       inquirer
         // structure of inquire: object
-      .prompt([
+        .prompt([
         {
-        // asking user to select product by item_id
-          name: "ID",
+        // ask user to select product by item_id
+          name: "id",
           type: "input",
           message: "Please choose a product using the ID #: "   
         },
         {
         // asking user to select unit quantity of desired product
-          name: "unit quantity",
+          name: "quantity",
           type: "input",
-          message: "Please choose your unit quantity of the desired product: "
+          // User choice: can exit BAMazon, or select unit quantity
+          message: "Please select the unit quantity you'd like. [You can also leave BAMazon by pressing 'Q']",
+          // validation logic for message above
+          validate: function (value) {
+            return value > 0 || value.toLowerCase() === "q";
+        }
         }
 
       // this is the response object (using .then(), callback)
-      ])
-      .then(function(answer){
+        ])
+        .then(function (value) {
+            // if user clicked "q", then execute function to leave app
+            checkIfShouldExit(value.quantity);
+            // check to see if product is in stock
+            // user unit quantity input
+            var quantity = parseInt(value.quantity);
+            var product = parseInt(value.id)
+            // out of stock, execute
+            if (quantity > value.stock_quantity) {
+              console.log("Insufficient Quantities, please select another quantity of units.");
+              loadProducts();
+            }
+        // otherwise, connect to database to reveal product & unit quantity
         // use & connect to create sql database
         connection.query(
           "SELECT ? FROM products",
           // display user answers from prompt
           {
-            id: answer.id,
-            stock_quantity: answer.stock_quantity,
+            id: value.id,
+            stock_quantity: value.stock_quantity,
           },
           function(err){
             if (err) return err;
             else {
               console.log("We've received your order!")
-              console.table(answer);
+              console.table(value);
             }
+            makePurchase(product, quantity);
             connection.end()
           }
         );
-        // };
-        // check if item is in stock
-        // if there an insufficient amt of stock
-        // if (answer.stock_quantity < stock_quantity){
-        //   console.log("Sorry, there are only" + stock_quantity + "items left at BAMazon.\nPlease choose a different stock quantity.")
-        // }
-        // // sufficient stock = update database to subtract stock
-        // // print out order information to user
-        // else{
-        //   connection.query(
-        //     "UPDATE stock_quantity FROM id",
-            
-        //   )
-        // }
-      
       });
     };
 
+    // updates stock_quantity if user purchase is made
+    function makePurchase(product, quantity){
+      connection.query(
+      // SQL query to update products table with new stock quantity after purchase
+          "UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?",
+          [quantity, product],
+          function(err, res){
+              if (err) return err;
+              console.log("Thank you! You've successfully purchased " + quantity + " items of ID #: " + product)
+              loadProducts();
+          }    
+      );
+  };
+
     function checkIfShouldExit(choice) {
       if (choice.toLowerCase() === "q"){
-        console.log("Goodbye");
+        console.log("Thank you for searching on BAMazon");
         process.exit(0);
       }
     }
+
+    // 
