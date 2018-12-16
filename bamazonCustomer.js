@@ -38,28 +38,32 @@ connection.connect(function(err) {
 // FORMAT PRICES IN TABLE CORRECTLY
 // function that loads the full table to show user all BAMazon products
 function loadProducts(){
-var query = "SELECT * FROM products";
-// connection to sql database to query
-    connection.query(query, function(err, response){
-    if (err) return err;
-    // console.log(response);
-    
-    // TABLE CLI-2 FORMAT: FIX
-    // ---------------------------
-    // var table = new Table({ head: ["ID", "product_name", "Price", "stock_quantity"] });
-    // console.log(table);
-    console.log("ID\t product_name\t\t\t\t price($) \t stock_quantity");
-    console.log("----------------------------------------------")
-    // ---------------------------
-    // logs each item in product table
-    for (var i = 0; i < response.length; i++){
-        console.log(response[i].id + "\t" + response[i].product_name + "\t\t\t\t" + response[i].price + "\t" + response[i].stock_quantity);
-    }
-    // next step: calls function to ask user to request specific product
-    console.log("---------------------------\n")
-    requestProduct();
-    });
-  };
+    var query = "SELECT * FROM products";
+    // query from connected sql database
+    connection.query(query, function(err, res){
+      if (err) return err;
+      // response object - formatted to show all items and data to user
+      console.table(res);
+      // WORKS: sql table shown to user.
+
+    // invoke function to ask user item requests.
+      requestProduct();
+    })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // *prompt functionality works*
     function requestProduct(product){
@@ -128,10 +132,17 @@ var query = "SELECT * FROM products";
           "UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?",
           [quantity, product],
           function(err, res){
-              if (err) return err;
+            if (err) return err;
               console.log("Thank you! You've successfully purchased " + quantity + " items of ID #: " + product)
               loadProducts();
-          }    
+          },  
+          // "SELECT ? FROM products",
+          // [quantity, price],
+          // function (err, res){
+          //   if (err) return err;
+          //   var total = price * quantity;
+          //   console.log("Your total is: $" + total);
+          // } 
       );
   };
 
@@ -142,4 +153,12 @@ var query = "SELECT * FROM products";
       }
     }
 
-    // 
+    // Function if user drains an item stock
+  // function noStock(){
+  //   if (stock_quantity = 0){
+  //     var upQuery = "DELETE FROM products WHERE (stock_quantity = 0)";
+
+  //   }
+  // }
+
+  // Challenge #3: 
