@@ -1,8 +1,15 @@
 {
   "name": "BAMazon",
   "version": "1.0.0",
-  "description": "node.js &amp; SQL app for Amazon, tracking purchases with inventory.",
-  "main": "index.js",
+  "description": "",
+  "main": "bamazonCustomer.js",
+  "dependencies": {
+    "cli-table2": "^0.2.0",
+    "console.table": "^0.10.0",
+    "inquirer": "^6.2.1",
+    "mysql": "^2.16.0"
+  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,11 +23,5 @@
   "bugs": {
     "url": "https://github.com/charliepaull/BAMazon/issues"
   },
-  "homepage": "https://github.com/charliepaull/BAMazon#readme",
-  "dependencies": {
-    "cli-table2": "^0.2.0",
-    "console.table": "^0.10.0",
-    "inquirer": "^6.2.1",
-    "mysql": "^2.16.0"
-  }
+  "homepage": "https://github.com/charliepaull/BAMazon#readme"
 }
