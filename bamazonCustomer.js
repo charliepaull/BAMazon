@@ -1,26 +1,10 @@
 // require adds in inquirer & mysql npm packages
 var inquirer = require("inquirer");
 require("console.table");
+var connection = require("../BAMazon/config/connection");
 
 
 // Challenge #1: Customer
-// Task: show user items in BAMazon
-// query here selects * from product table & displays
-
-// FORMAT PRICES IN TABLE CORRECTLY
-// function that loads the full table to show user all BAMazon products
-function loadProducts(){
-    var query = "SELECT * FROM products";
-    // query from connected sql database
-    connection.query(query, function(err, res){
-      if (err) return err;
-      // response object - formatted to show all items and data to user
-      // WORKS: sql table shown to user.
-
-    // invoke function to ask user item requests.
-      requestProduct();
-    })
-}
 
     // *prompt functionality works, but stock quantity doesn't alert when it's zero*
     function requestProduct(product){
@@ -49,6 +33,14 @@ function loadProducts(){
       // response object to grab data
         ])
         .then(function (value) {
+
+          // run fetchproduct();
+
+          // if no enough quantity or out of stock: run loadProduct();
+          // else: "We've received your order, thank you!";
+
+
+
             // if user clicked "q", then execute function to leave app
             if (value === "q"){
               checkIfShouldExit(value);
@@ -85,6 +77,12 @@ function loadProducts(){
               console.log("We've received your order!")
               console.table(value);
             }
+
+            // ====================================
+            // add here the purchaseValue() function that tells the user the price
+            // ====================================
+
+
             makePurchase(product, quantity);
             connection.end()
           }
